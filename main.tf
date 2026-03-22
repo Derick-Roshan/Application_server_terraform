@@ -117,20 +117,22 @@ resource "aws_instance" "web_server" {
   vpc_security_group_ids = [aws_security_group.web_sg.id]
 
   user_data = <<-EOF
-  #!/bin/bash
-  yum update -y
-  yum install -y httpd git
-  systemctl enable httpd
-  systemctl start httpd
+ #!/bin/bash
 
-  cd /tmp
-  git clone https://github.com/Derick-Roshan/Portfolio-website.git
+  cd /home/ec2-user
+  git clone https://github.com/Derick-Roshan/Predictive_maintanance.git
+  cd Predictive_maintanance
 
-  cp -r Portfolio-website/* /var/www/html/
+  python3 -m venv venv
+  source venv/bin/activate
 
-  echo "Server ${count.index + 1}" >> /var/www/html/index.html
+  pip install --upgrade pip
+  pip install -r requirements.txt
 
-  systemctl restart httpd
+  nohup venv/bin/streamlit run predictive_maintenance_app.py \
+  --server.port 8502 \
+  --server.address 0.0.0.0 > streamlit.log 2>&1 &
+  
   EOF
   tags = {
     Name = "WebServer-${count.index + 1}"
